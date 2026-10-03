@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Fetch — Campus Lost &amp; Found</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Ambient background mesh -->
+<div class="mesh-bg" aria-hidden="true">
+  <div class="blob b1"></div>
+  <div class="blob b2"></div>
+  <div class="blob b3"></div>
+  <div class="blob b4"></div>
+  <div class="grain"></div>
+</div>
+
+<!-- Theme toggle for the sign-in screen (fixed, nothing else occupies this corner there) -->
+<button id="themeToggleAuth" class="theme-toggle glass" aria-label="Toggle light and dark theme" title="Toggle theme">
+  <span class="theme-toggle-icon">☾</span>
+</button>
+
+<!-- Auth gate -->
+<div id="authScreen" class="auth-screen">
+  <div class="glass auth-card">
+    <div class="auth-brand">
+      <div class="app-icon">🔍</div>
+      <h1>Fetch</h1>
+      <p class="auth-tag">Campus Lost &amp; Found, reunited faster.</p>
+    </div>
+
+    <div class="segmented" id="authSegment">
+      <button class="seg-btn active" data-mode="login">Sign In</button>
+      <button class="seg-btn" data-mode="register">Create Account</button>
+    </div>
+
+    <form id="authForm" class="auth-form" autocomplete="off">
+      <div class="field" id="fieldName">
+        <label>Full name</label>
+        <input type="text" id="authName" name="fetch_name_field" placeholder="Full name" autocomplete="off">
+      </div>
+      <div class="field">
+        <label>Campus email</label>
+        <input type="email" id="authEmail" name="fetch_email_field" placeholder="Campus email" autocomplete="off" autocapitalize="off" spellcheck="false" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="authPassword" name="fetch_password_field" placeholder="Password" autocomplete="new-password" required>
+      </div>
+      <div class="field" id="fieldRole">
+        <label>I am a</label>
+        <div class="pill-select" id="roleSelect">
+          <button type="button" class="pill active" data-role="student">Student / Staff</button>
+          <button type="button" class="pill" data-role="admin">Admin</button>
+        </div>
+      </div>
+      <p class="auth-error" id="authError"></p>
+      <button type="submit" class="btn-primary full" id="authSubmit">Sign In</button>
+    </form>
+
+    <button class="btn-ghost full" id="demoBtn">Continue with demo account</button>
+  </div>
+</div>
+
+<!-- App shell -->
+<div id="app" class="app hidden">
+
+  <!-- Top bar -->
+  <header class="topbar">
+    <div class="topbar-inner glass">
+      <div class="brand-mini">
+        <span class="app-icon small">🔍</span>
+        <span class="brand-name">Fetch</span>
+      </div>
+      <div class="topbar-title" id="viewTitle">Home</div>
+      <div class="topbar-actions">
+        <button id="themeToggleTop" class="theme-toggle-inline" aria-label="Toggle light and dark theme" title="Toggle theme">
+          <span class="theme-toggle-icon">☾</span>
+        </button>
+        <button class="avatar-btn" id="profileBtn" aria-label="Profile">
+          <span id="avatarInitial">A</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="views">
+
+    <!-- HOME -->
+    <section class="view" id="view-home">
+      <div class="hero glass">
+        <div class="hero-text">
+          <p class="eyebrow" id="greeting">Good afternoon</p>
+          <h2 id="homeName">Welcome back</h2>
+          <p class="hero-sub">Here's what's happening across campus right now.</p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn-primary" data-nav="report" data-report-type="lost">I lost something</button>
+          <button class="btn-secondary" data-nav="report" data-report-type="found">I found something</button>
+        </div>
+      </div>
+
+      <div class="stat-row">
+        <div class="stat-card glass">
+          <span class="stat-num" id="statLost">0</span>
+          <span class="stat-label">Lost — open</span>
+        </div>
+        <div class="stat-card glass">
+          <span class="stat-num" id="statFound">0</span>
+          <span class="stat-label">Found — open</span>
+        </div>
+        <div class="stat-card glass">
+          <span class="stat-num" id="statReturned">0</span>
+          <span class="stat-label">Returned</span>
+        </div>
+        <div class="stat-card glass">
+          <span class="stat-num" id="statMatches">0</span>
+          <span class="stat-label">Possible matches</span>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <h3>Possible matches for you</h3>
+      </div>
+      <div class="hscroll" id="matchesRow">
+        <p class="empty-hint">No matches yet — report an item to see suggestions here.</p>
+      </div>
+
+      <div class="section-head">
+        <h3>Recently reported</h3>
+        <button class="link-btn" data-nav="browse">See all</button>
+      </div>
+      <div class="card-grid" id="recentItems"></div>
+    </section>
+
+    <!-- REPORT -->
+    <section class="view" id="view-report">
+      <div class="segmented wide" id="reportTypeSeg">
+        <button class="seg-btn lost active" data-type="lost">Lost Item</button>
+        <button class="seg-btn found" data-type="found">Found Item</button>
+      </div>
+
+      <form id="reportForm" class="glass form-card">
+        <div class="field">
+          <label>Item name</label>
+          <input type="text" id="itemName" placeholder="e.g. Black Wildcraft backpack" required>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Category</label>
+            <select id="itemCategory" required>
+              <option value="">Select category</option>
+              <option>Electronics</option>
+              <option>Bags &amp; Backpacks</option>
+              <option>ID Cards &amp; Documents</option>
+              <option>Books &amp; Stationery</option>
+              <option>Keys</option>
+              <option>Clothing &amp; Accessories</option>
+              <option>Water Bottles &amp; Flasks</option>
+              <option>Sports Equipment</option>
+              <option>Jewelry</option>
+              <option>Other</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Location</label>
+            <select id="itemLocation" required></select>
+          </div>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label>Date</label>
+            <input type="date" id="itemDate" required>
+          </div>
+          <div class="field">
+            <label>Time (approx.)</label>
+            <input type="time" id="itemTime">
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Description</label>
+          <textarea id="itemDescription" rows="3" placeholder="Color, brand, distinguishing marks, contents…" required></textarea>
+        </div>
+
+        <div class="field">
+          <label>Pick location on the building map</label>
+          <div class="report-map glass floor-map" id="reportMapWrap"></div>
+        </div>
+
+        <div class="field">
+          <label>Photo (optional)</label>
+          <div class="upload-box glass" id="uploadBox">
+            <input type="file" id="itemImage" accept="image/*" hidden>
+            <div id="uploadPrompt">
+              <span class="upload-icon">📷</span>
+              <span>Tap to add a photo</span>
+            </div>
+            <img id="uploadPreview" class="hidden" alt="Item preview">
+          </div>
+        </div>
+
+        <button type="submit" class="btn-primary full" id="reportSubmitBtn">Report Lost Item</button>
+      </form>
+    </section>
+
+    <!-- BROWSE -->
+    <section class="view" id="view-browse">
+      <div class="search-bar glass">
+        <span class="search-icon">⌕</span>
+        <input type="text" id="searchInput" placeholder="Search items, e.g. 'blue water bottle'">
+      </div>
+
+      <div class="filter-chips" id="filterChips">
+        <button class="chip active" data-filter="all">All</button>
+        <button class="chip" data-filter="lost">Lost</button>
+        <button class="chip" data-filter="found">Found</button>
+        <button class="chip" data-filter="returned">Returned</button>
+      </div>
+
+      <div class="filter-chips" id="categoryChips"></div>
+
+      <div class="card-grid wide" id="browseItems"></div>
+      <p class="empty-hint hidden" id="browseEmpty">No items match your search.</p>
+    </section>
+
+    <!-- MAP -->
+    <section class="view" id="view-map">
+      <div class="section-head">
+        <h3>College Map</h3>
+        <p class="hero-sub">Pick a floor, then tap a room to see what was reported there.</p>
+      </div>
+      <div class="map-card glass">
+        <div id="campusMap" class="campus-map"></div>
+      </div>
+      <div id="mapLocationPanel" class="glass map-panel hidden">
+        <div class="map-panel-head">
+          <h4 id="mapLocationName">Location</h4>
+          <button class="close-btn" id="mapPanelClose">✕</button>
+        </div>
+        <div class="card-grid" id="mapLocationItems"></div>
+      </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section class="view" id="view-admin">
+      <div class="segmented wide" id="adminSeg">
+        <button class="seg-btn active" data-tab="claims">Claims</button>
+        <button class="seg-btn" data-tab="items">All Items</button>
+        <button class="seg-btn" data-tab="users">Users</button>
+      </div>
+
+      <div id="adminClaims" class="admin-tab">
+        <div class="card-grid wide" id="claimsList"></div>
+        <p class="empty-hint hidden" id="claimsEmpty">No pending claims.</p>
+      </div>
+
+      <div id="adminItems" class="admin-tab hidden">
+        <div class="table-wrap glass">
+          <table class="data-table" id="itemsTable">
+            <thead>
+              <tr><th>Item</th><th>Type</th><th>Category</th><th>Location</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody id="itemsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div id="adminUsers" class="admin-tab hidden">
+        <div class="table-wrap glass">
+          <table class="data-table" id="usersTable">
+            <thead>
+              <tr><th>Name</th><th>Email</th><th>Role</th><th>Items Reported</th></tr>
+            </thead>
+            <tbody id="usersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- PROFILE -->
+    <section class="view" id="view-profile">
+      <div class="glass profile-card">
+        <div class="profile-avatar" id="profileAvatarBig">A</div>
+        <h2 id="profileName">Name</h2>
+        <p class="hero-sub" id="profileEmail">email</p>
+        <span class="role-badge" id="profileRole">Student</span>
+      </div>
+
+      <div class="section-head"><h3>My reports</h3></div>
+      <div class="card-grid" id="myItems"></div>
+      <p class="empty-hint hidden" id="myItemsEmpty">You haven't reported anything yet.</p>
+
+      <div class="section-head"><h3>My claims</h3></div>
+      <div class="card-grid" id="myClaims"></div>
+      <p class="empty-hint hidden" id="myClaimsEmpty">No claims submitted.</p>
+
+      <button class="btn-ghost full danger" id="logoutBtn">Sign Out</button>
+    </section>
+
+  </main>
+
+  <!-- Bottom glass tab bar -->
+  <nav class="tabbar-wrap">
+    <div class="tabbar glass">
+      <button class="tab-btn active" data-view="home">
+        <span class="tab-icon">⌂</span><span>Home</span>
+      </button>
+      <button class="tab-btn" data-view="browse">
+        <span class="tab-icon">⌕</span><span>Browse</span>
+      </button>
+      <button class="tab-btn fab" data-view="report">
+        <span class="tab-icon fab-icon">＋</span>
+      </button>
+      <button class="tab-btn" data-view="map">
+        <span class="tab-icon">⌖</span><span>Map</span>
+      </button>
+      <button class="tab-btn" data-view="profile" id="tabProfile">
+        <span class="tab-icon">☺</span><span>Profile</span>
+      </button>
+    </div>
+  </nav>
+</div>
+
+<!-- Item detail modal -->
+<div id="itemModal" class="modal-overlay hidden">
+  <div class="glass modal-card" id="itemModalCard"></div>
+</div>
+
+<!-- Toast -->
+<div id="toast" class="toast glass hidden"></div>
+
+<script src="script.js"></script>
+</body>
+</html>
